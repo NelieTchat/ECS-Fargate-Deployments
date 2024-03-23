@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Create an ECS Service with EC2 Launch Type
+
+Resources:
+  Myec2TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: my-ec2-task
+      Cpu: '256'  # Specify the CPU requirement for the task (in units)
+      Memory: '512'  # Specify the memory requirement for the task (in MiB)
+      # NetworkMode: awsvpc,  # Optional, default behavior for both launch types
+      ContainerDefinitions:
+        - Name: my-container
+          Image: hub.docker.com/repository/docker/tchanela/polished:ViaDora  # Update with your public image URI
+          PortMappings:
+            - ContainerPort: 80  # Replace with your container port
+
+  Myec2Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: 
+       - !ImportValue ecs-cluster-fargate-MyECSEc2Cluster
+      ServiceName: Myec2Service
+      LaunchType: EC2  # Use EC2 launch type for your capacity provider
+      TaskDefinition: !Ref MyTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - !ImportValue ecs-cluster-ec2-SecurityGroup  # Import the security group from ECS cluster stack  # Reference security group from ecs-ec2.yaml
+          Subnets:
+            - !ImportValue ecs-cluster-ec2-PublicSubnet1  # Import the public subnet 1 from ECS cluster stack
+            - !ImportValue ecs-cluster-ec2-PublicSubnet2  # Import the public subnet 2 from ECS cluster stack 
+      LoadBalancers:
+        - ContainerName: my-container  # Replace with your container name
+          ContainerPort: 80  # Replace with your container port
+          TargetGroupArn: !ImportValue ecs-cluster-ec2-TargetGroup  # Import the target group from ECS cluster stack
+      DesiredCount: 2  # Set the desired number of tasks
+
+Outputs:
+  ServiceName:
+    Description: Name of the ECS Service
+    Value: !Ref Myec2Service
