@@ -11,21 +11,21 @@ Resources:
   MyFargateService:
     Type: AWS::ECS::Service
     Properties:
-      Cluster: !ImportValue ecs-cluster-fargate-MyECSFargateCluster  # Reference the cluster from the parameter
+      Cluster: !ImportValue fg-cluster-MyECSFargateCluster  # Reference the cluster from the parameter
       ServiceName: MyFargateService
       LaunchType: FARGATE
       TaskDefinition: !Ref MyfargateTaskDefinition
       NetworkConfiguration:
         AwsvpcConfiguration:
           Subnets:
-            - !ImportValue ecs-cluster-fargate-PublicSubnet1
-            - !ImportValue ecs-cluster-fargate-PublicSubnet2
+            - !ImportValue fg-cluster-PublicSubnet1
+            - !ImportValue fg-cluster-PublicSubnet2
           SecurityGroups:
-            - !ImportValue ecs-cluster-fargate-SecurityGroup  # Import the security group from ECS cluster stack
+            - !ImportValue fg-cluster-SecurityGroup  # Import the security group from ECS cluster stack
       LoadBalancers:
         - ContainerName: my-container
           ContainerPort: 80
-          TargetGroupArn: !ImportValue ecs-cluster-fargate-TargetGroup  # Import the target group from ECS cluster stack
+          TargetGroupArn: !ImportValue fg-cluster-TargetGroup  # Import the target group from ECS cluster stack
       DesiredCount: 2
 
   LogGroup:
